@@ -61,7 +61,17 @@ im_list{2}= imread('afasa2.jpg');
 im_list{3}= imread('afasa3.jpg');
 im_list{4}= imread('afasa4.jpg');
 
-CUE_TIME = .250; %sec
+im_list_A = cell(1, 4);
+im_list_A{1} = imread('afasa5.jpg');
+im_list_A{2} = imread('afasa6.jpg');
+im_list_A{3} = imread('afasa7.jpg');
+im_list_A{4} = imread('afasa8.jpg');
+
+% CUE_TIME = .250; %sec
+STIM_A_TIME_DUR = .25; %sec
+STIM_B_TIME_DUR = STIM_A_TIME_DUR;
+STIM_ISI_DUR = 0; %this should ultimately get set per trial by exp. params.
+WT_TIME = 2; %this should ultimately get set per trial by exp. params.
 RET_TIME = 3; %sec
 TR_TIME = 1.1; %sec 
 MOV_TIME = 1.9; % (1.1 for targ disp, 1.9 for movement)
@@ -80,7 +90,7 @@ pahandle = PsychPortAudio('Open');
 
 Ts = 1/44100;
 sound_dur = .1;
-tone_freq1 = 1000;
+tone_freq1 = 1000;targ_coords_base
 tone_freq2 = 1700;
 time = Ts:Ts:.1;
 tone_signal1 = .1*sin(tone_freq1*time);
@@ -102,17 +112,17 @@ bubble_expand_rate = 800;
 %% full session - ramped pPT
 SUB_NUM_ = 'dmh';
 %%
-[trial_target_numbers_MASTER, trial_type_MASTER, prescribed_PT_MASTER] = generate_trial_table_E1retention_v5(SUB_NUM_);
-
+% [trial_target_numbers_MASTER, trial_type_MASTER, prescribed_PT_MASTER] = generate_trial_table_E1retention_v5(SUB_NUM_);
+load('trial_parameters_dmh.mat'); trial_target_numbers_MASTER = trial_target_numbers; trial_type_MASTER = trial_type; prescribed_PT_MASTER = prescribed_PT;
 screens=Screen('Screens');
 screenNumber=min(screens);
 [win, rect] = Screen('OpenWindow', screenNumber, []); %[0 0 1600 900]);
 
-for block_num = 1:4
+for block_num = 1%:4
     switch block_num
         case 1
             this_trials = 1:12;
-% this_trials = 1:1;
+this_trials = 1:2;
             trial_type = trial_type_MASTER(this_trials);
             trial_target_numbers = trial_target_numbers_MASTER(this_trials);
             prescribed_PT = prescribed_PT_MASTER(this_trials);
@@ -197,6 +207,7 @@ for block_num = 1:4
             k_text_buff = 1;
             k_pic_buff = 1;
             k_oval_buff = 0;
+            tone_flag = 1;
     %         curr_target = targ_coords_base(trial_target_numbers(i_tr), :);
             curr_target = home_position;
             while ~isequal(state, 'end_state')
@@ -259,6 +270,7 @@ for block_num = 1:4
                     [[kinematics(k_samp, 2:3), kinematics(k_samp, 2:3)]' + cursor_dims, ...
                     screen_oval_buff]);
                 Screen('FrameOval', win, [74, 96, 96]', [home_position home_position]' + target_circle_dims');
+                Screen('FrameOval', win, repmat([74 96 96]', 1, 4),  [targ_coords_base, targ_coords_base]' + cursor_dims);
                 if draw_text_flag == 1
                     for i_text = 1:length(screen_text_buff)
                         Screen('DrawText', win, screen_text_buff{i_text}, TEXT_LOC(1), TEXT_LOC(2) + (i_text - 1)*15);
@@ -303,227 +315,293 @@ for block_num = 1:4
                             Data.Type(i_tr) = trial_type(i_tr);
                             entrance = 0;
                         else
-    %                         [keyIsDown,secs,keyCode]=KbCheck;
-    %                         if keyIsDown && keyCode(home)
                             targ_dist = norm(curr_target - kinematics(k_samp, 2:3));
-                            if targ_dist <= 15 %&& temp_jkey
+                            if targ_dist <= 15 %pixels
                                 % home pos reached: switch to home state
                                 entrance = 1;
                                 state = 'home';
                                 draw_text_flag = 0;
                                 draw_pic_flag = 0;
                             else
-                                % have not reached home & pressed key1 yet
+                                % have not reached home
                             end
                         end
                     case 'home'
                         if entrance == 1
                             % first entrance into home state
                             home_start_time = GetSecs - trial_time; %toc(trial_time);
-                            switch trial_type(i_tr)
-                                case 4 % catch trial 
-                                    rnd_ind = randperm(3);
-                                    switch trial_target_numbers(i_tr)
-                                        case 1
-                                            temp_alt_targ = [2 3 4];
-                                            temp_tx = Screen('MakeTexture', win, im_list{temp_alt_targ(rnd_ind(1))});
-                                            tx_size = size(im_list{temp_alt_targ(rnd_ind(1))});
-                                        case 2
-                                            temp_alt_targ = [1 3 4];
-                                            temp_tx = Screen('MakeTexture', win, im_list{temp_alt_targ(rnd_ind(1))});
-                                            tx_size = size(im_list{temp_alt_targ(rnd_ind(1))});
-                                        case 3
-                                            temp_alt_targ = [1 2 4];
-                                            temp_tx = Screen('MakeTexture', win, im_list{temp_alt_targ(rnd_ind(1))});
-                                            tx_size = size(im_list{temp_alt_targ(rnd_ind(1))});
-                                        case 4 
-                                            temp_alt_targ = [1 2 3];
-                                            temp_tx = Screen('MakeTexture', win, im_list{temp_alt_targ(rnd_ind(1))});
-                                            tx_size = size(im_list{temp_alt_targ(rnd_ind(1))});
-                                        otherwise
-                                            error('Invalid target name listed');
-                                    end
-                                     screen_picDim_buff{1, k_pic_buff} = [0; 0; tx_size(2); tx_size(1)];
-                                     screen_picDim_buff{2, k_pic_buff} = [TEXT_LOC(1) - TEXT_SIZE; TEXT_LOC(2) - TEXT_SIZE;...
-                                         TEXT_LOC(1) + TEXT_SIZE; TEXT_LOC(2) + TEXT_SIZE];
-                                     screen_pic_buff{k_pic_buff} = temp_tx;
-                                     draw_pic_flag = 1;
-                                     Data.Target(i_tr) = trial_target_numbers(i_tr);
-                                case 3 % catch trial
-                                    rnd_ind = randperm(3);
-                                    k_oval_buff = k_oval_buff + 1;
-                                    switch trial_target_numbers(i_tr)
-                                        case 1       
-                                            temp_alt_targ = [2 3 4];
-                                            screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
-                                            screen_color_buff(:, k_oval_buff) = [0; 0; 0];
-                                            %Data.Target(i_tr) = 3;
-                                        case 2
-                                            temp_alt_targ = [1 3 4];
-                                            screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
-                                            screen_color_buff(:, k_oval_buff) = [0; 0; 0];
-                                            %Data.Target(i_tr) = 4;
-                                        case 3
-                                            temp_alt_targ = [1 2 4];
-                                            screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
-                                            screen_color_buff(:, k_oval_buff) = [0; 0; 0];
-                                            %Data.Target(i_tr) = 5;
-                                        case 4 
-                                            temp_alt_targ = [1 2 3];
-                                            screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
-                                            screen_color_buff(:, k_oval_buff) = [0; 0; 0];
-                                            %Data.Target(i_tr) = 6;
-                                        otherwise
-                                            error('Invalid target name listed');
-                                    end
-                                    Data.Target(i_tr) = trial_target_numbers(i_tr);
-                                case 2
-                                    switch trial_target_numbers(i_tr)
-                                        case 1
-                                            temp_tx = Screen('MakeTexture', win, im_list{1});
-                                            tx_size = size(im_list{1});
-                                        case 2
-                                            temp_tx = Screen('MakeTexture', win, im_list{2});
-                                            tx_size = size(im_list{2});
-                                        case 3
-                                            temp_tx = Screen('MakeTexture', win, im_list{3});
-                                            tx_size = size(im_list{3});
-                                        case 4 
-                                            temp_tx = Screen('MakeTexture', win, im_list{4});
-                                            tx_size = size(im_list{4});
-                                        otherwise
-                                            error('Invalid target name listed');
-                                    end
-                                     screen_picDim_buff{1, k_pic_buff} = [0; 0; tx_size(2); tx_size(1)];
-                                     screen_picDim_buff{2, k_pic_buff} = [TEXT_LOC(1) - TEXT_SIZE; TEXT_LOC(2) - TEXT_SIZE;...
-                                         TEXT_LOC(1) + TEXT_SIZE; TEXT_LOC(2) + TEXT_SIZE];
-                                     screen_pic_buff{k_pic_buff} = temp_tx;
-                                     draw_pic_flag = 1;
-                                     Data.Target(i_tr) = trial_target_numbers(i_tr);
-                                case 1
-                                    k_oval_buff = k_oval_buff + 1;
-                                    screen_oval_buff(:, k_oval_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;
-                                    screen_color_buff(:, k_oval_buff) = [0; 0; 0];
-                                    Data.Target(i_tr) = trial_target_numbers(i_tr);
-                                case 0
-                                    %show nothing
-                                    Data.Target(i_tr) = trial_target_numbers(i_tr);
-                                otherwise
-                                    error('No valid trial type specified.')
-                            end 
-                            entrance = 0;
                             curr_target = targ_coords_base(trial_target_numbers(i_tr),:);
-                        else
-%                             if (toc(trial_time) - home_start_time) < CUE_TIME
-                            if ((GetSecs - trial_time) - home_start_time) < CUE_TIME
-                                % actually do nothing.. just wait
-                            else
-                                % extinguish cue and switch to retention state
-    %                             Screen('Flip', win);
-                                draw_text_flag = 0;
-                                draw_pic_flag = 0;
-                                switch trial_type(i_tr)
-                                    case 4
-                                    case 3
-                                        k_oval_buff = k_oval_buff - 1;
-                                        screen_oval_buff = screen_oval_buff(:, 1:k_oval_buff);
-                                        screen_color_buff = screen_color_buff(:, 1:k_oval_buff);
-                                    case 2
-                                    case 1
-                                        k_oval_buff = k_oval_buff - 1;
-                                        screen_oval_buff = screen_oval_buff(:, 1:k_oval_buff);
-                                        screen_color_buff = screen_color_buff(:, 1:k_oval_buff);
-                                    case 0
-                                    otherwise
-                                        error('invalid trial type')
-                                end
-                                entrance = 1;
-                                state = 'retention';
-                            end
-                        end
-                    case 'retention'
-                        if entrance == 1
-                            % just entered state
-                            retention_start_time = GetSecs - trial_time; %toc(trial_time);
                             entrance = 0;
+                            home_sub_state = 'wait';
+                            sub_entrance = 1;
+                            state_time = GetSecs;
                         else
-                            if ((GetSecs - trial_time) - retention_start_time) < RET_TIME 
-                                %(toc(trial_time) - retention_start_time) < RET_TIME
-                                % actually do nothing.. just wait
-                            else
-                                % extinguish cue and switch to retention state
-    %                             Screen('Flip', win);
-                                entrance = 1;
-                                state = 'TR';
+                            % check if tones need to be started:
+                            cur_state_time = GetSecs - state_time;
+                            if cur_state_time > RET_TIME && tone_flag
+                                startTime = PsychPortAudio('Start', pahandle);
+                                tone_flag = 0;
                             end
-                        end
-                    case 'TR'
-                        if entrance == 1
-                            % just entered TR state
-                            TR_state_time = GetSecs - trial_time; %toc(trial_time);
-                            startTime = PsychPortAudio('Start', pahandle);
-                            target_shown = 0;
-                            mov_begun = 0;
-                            mov_ended = 0;
-                            entrance = 0;
-                            move_start_time = nan;
-                            move_end_time = nan;
-                        else
-                            home_dist = norm(home_position - kinematics(k_samp, 2:3));
-    %                         targ_dist = norm(curr_target - kinematics(k_samp, 2:3));
-%                             state_elapsed_time = (toc(trial_time) - TR_state_time);
-                            state_elapsed_time = ((GetSecs - trial_time) - TR_state_time);
-                            if state_elapsed_time >= TR_TIME
-                                bubble_rad = (state_elapsed_time - TR_TIME)*bubble_expand_rate;
-                                if bubble_rad > TARG_LEN
-                                    draw_bubble_flag = 0;
-                                else
-                                    screen_bubble_buff = [-bubble_rad; -bubble_rad; bubble_rad; bubble_rad];
-                                    draw_bubble_flag = 1;
-                                end
-                            else
-                                draw_bubble_flag = 0;
-                            end
-                            if home_dist > 15 && ~mov_begun
-                                % movement just begun
-                                mov_begun = 1;
-                                move_start_time = (GetSecs - trial_time); %toc(trial_time);
-                            end
-                            if home_dist > TARG_LEN && ~mov_ended
-                                mov_ended = 1;
-                                move_end_time = GetSecs - trial_time; %toc(trial_time);
-                            end
-                            if ((GetSecs - trial_time) - TR_state_time) > (TR_TIME - prescribed_PT(i_tr))
-                            %if (toc(trial_time) - TR_state_time) > (TR_TIME - prescribed_PT(i_tr))
-                                % time to show target once
-                                if target_shown == 0
-                                    k_oval_buff = k_oval_buff + 1;
-                                    screen_oval_buff(:, k_oval_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;
-                                    screen_color_buff(:, k_oval_buff) = [0;0;0];
-                                    target_shown = 1;
-                                    target_shown_time = GetSecs - trial_time; %toc(trial_time);
-                                    Data.time_targ_disp(i_tr) = GetSecs - exp_time;%toc(exp_time);
-                                else
-                                    % no need to do anything
-                                end
-                            else
-                                % wait for PT start time
-                            end
-                            %if (toc(trial_time) - TR_state_time) > (TR_TIME + MOV_TIME)
-                            if ((GetSecs - trial_time) - TR_state_time) > (TR_TIME + MOV_TIME)
-                                % transition to ITI state
-                                entrance = 1;
-                                state = 'ITI';
-                                if mov_begun
-                                    Data.ViewTime(i_tr) = (target_shown_time - TR_state_time) - (move_start_time - TR_state_time);
-                                    Data.RT(i_tr) = (move_start_time - TR_state_time) - TR_TIME;
-                                end
-                                if mov_ended
-                                    Data.MT(i_tr) = move_end_time - move_start_time;
-                                    Data.Succ(i_tr) = 1;
-                                else
-                                    Data.Succ(i_tr) = 0;
-                                end
+
+                            switch home_sub_state
+                                case 'wait'
+                                    if sub_entrance == 1
+                                        sub_entrance = 0;
+                                    else
+                                        if cur_state_time >= WT_TIME
+                                            home_sub_state = 'stimA';
+                                            sub_entrance = 1;
+                                        else
+                                            % do nothing; just wait.
+                                        end
+                                    end
+                                case 'stimA'
+                                    if sub_entrance == 1
+                                        switch trial_type(i_tr)
+                                            case 4 % catch trial 
+                                                rnd_ind = randperm(3);
+                                                switch trial_target_numbers(i_tr)
+                                                    case 1
+                                                        temp_alt_targ = [2 3 4];
+                                                        temp_tx = Screen('MakeTexture', win, im_list_A{temp_alt_targ(rnd_ind(1))});
+                                                        tx_size = size(im_list_A{temp_alt_targ(rnd_ind(1))});
+                                                    case 2
+                                                        temp_alt_targ = [1 3 4];
+                                                        temp_tx = Screen('MakeTexture', win, im_list_A{temp_alt_targ(rnd_ind(1))});
+                                                        tx_size = size(im_list_A{temp_alt_targ(rnd_ind(1))});
+                                                    case 3
+                                                        temp_alt_targ = [1 2 4];
+                                                        temp_tx = Screen('MakeTexture', win, im_list_A{temp_alt_targ(rnd_ind(1))});
+                                                        tx_size = size(im_list_A{temp_alt_targ(rnd_ind(1))});
+                                                    case 4
+                                                        temp_alt_targ = [1 2 3];
+                                                        temp_tx = Screen('MakeTexture', win, im_list_A{temp_alt_targ(rnd_ind(1))});
+                                                        tx_size = size(im_list_A{temp_alt_targ(rnd_ind(1))});
+                                                    otherwise
+                                                        error('Invalid target name listed');
+                                                end
+                                                 screen_picDim_buff{1, k_pic_buff} = [0; 0; tx_size(2); tx_size(1)];
+                                                 screen_picDim_buff{2, k_pic_buff} = [TEXT_LOC(1) - TEXT_SIZE; TEXT_LOC(2) - TEXT_SIZE;...
+                                                     TEXT_LOC(1) + TEXT_SIZE; TEXT_LOC(2) + TEXT_SIZE];
+                                                 screen_pic_buff{k_pic_buff} = temp_tx;
+                                                 draw_pic_flag = 1;
+                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            case 3 % catch trial
+                                                rnd_ind = randperm(3);
+                                                k_oval_buff = k_oval_buff + 1;
+                                                switch trial_target_numbers(i_tr)
+                                                    case 1       
+                                                        temp_alt_targ = [2 3 4];
+                                                        screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
+                                                        screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                        %Data.Target(i_tr) = 3;
+                                                    case 2
+                                                        temp_alt_targ = [1 3 4];
+                                                        screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
+                                                        screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                        %Data.Target(i_tr) = 4;
+                                                    case 3
+                                                        temp_alt_targ = [1 2 4];
+                                                        screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
+                                                        screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                        %Data.Target(i_tr) = 5;
+                                                    case 4 
+                                                        temp_alt_targ = [1 2 3];
+                                                        screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
+                                                        screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                        %Data.Target(i_tr) = 6;
+                                                    otherwise
+                                                        error('Invalid target name listed');
+                                                end
+                                                Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            case 2
+                                                switch trial_target_numbers(i_tr)
+                                                    case 1
+                                                        temp_tx = Screen('MakeTexture', win, im_list_A{1});
+                                                        tx_size = size(im_list_A{1});
+                                                    case 2
+                                                        temp_tx = Screen('MakeTexture', win, im_list_A{2});
+                                                        tx_size = size(im_list_A{2});
+                                                    case 3
+                                                        temp_tx = Screen('MakeTexture', win, im_list_A{3});
+                                                        tx_size = size(im_list_A{3});
+                                                    case 4 
+                                                        temp_tx = Screen('MakeTexture', win, im_list_A{4});
+                                                        tx_size = size(im_list_A{4});
+                                                    otherwise
+                                                        error('Invalid target name listed');
+                                                end
+                                                 screen_picDim_buff{1, k_pic_buff} = [0; 0; tx_size(2); tx_size(1)];
+                                                 screen_picDim_buff{2, k_pic_buff} = [TEXT_LOC(1) - TEXT_SIZE; TEXT_LOC(2) - TEXT_SIZE;...
+                                                     TEXT_LOC(1) + TEXT_SIZE; TEXT_LOC(2) + TEXT_SIZE];
+                                                 screen_pic_buff{k_pic_buff} = temp_tx;
+                                                 draw_pic_flag = 1;
+                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            case 1
+                                                k_oval_buff = k_oval_buff + 1;
+                                                screen_oval_buff(:, k_oval_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;
+                                                screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            case 0
+                                                %show nothing
+                                                Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            otherwise
+                                                error('No valid trial type specified.')
+                                        end 
+                                        sub_entrance = 0;
+                                    else
+                                        if cur_state_time >= WT_TIME + STIM_A_TIME_DUR
+                                            home_sub_state = 'ISI';
+                                            sub_entrance = 1;
+                                        else
+                                            % do nothing
+                                        end
+                                    end
+                                case 'ISI'
+                                    if sub_entrance == 1
+                                        sub_entrance = 0;
+                                    else
+                                        if cur_state_time >= WT_TIME + STIM_A_TIME_DUR + STIM_ISI_DUR
+                                            home_sub_state = 'stimB';
+                                            sub_entrance = 1;
+                                        else
+                                            % do nothing
+                                        end
+                                    end
+                                case 'stimB'
+                                    if sub_entrance == 1
+                                        switch trial_type(i_tr)
+                                            case 4 % catch trial 
+                                                rnd_ind = randperm(3);
+                                                switch trial_target_numbers(i_tr)
+                                                    case 1
+                                                        temp_alt_targ = [2 3 4];
+                                                        temp_tx = Screen('MakeTexture', win, im_list{temp_alt_targ(rnd_ind(1))});
+                                                        tx_size = size(im_list{temp_alt_targ(rnd_ind(1))});
+                                                    case 2
+                                                        temp_alt_targ = [1 3 4];
+                                                        temp_tx = Screen('MakeTexture', win, im_list{temp_alt_targ(rnd_ind(1))});
+                                                        tx_size = size(im_list{temp_alt_targ(rnd_ind(1))});
+                                                    case 3
+                                                        temp_alt_targ = [1 2 4];
+                                                        temp_tx = Screen('MakeTexture', win, im_list{temp_alt_targ(rnd_ind(1))});
+                                                        tx_size = size(im_list{temp_alt_targ(rnd_ind(1))});
+                                                    case 4
+                                                        temp_alt_targ = [1 2 3];
+                                                        temp_tx = Screen('MakeTexture', win, im_list{temp_alt_targ(rnd_ind(1))});
+                                                        tx_size = size(im_list{temp_alt_targ(rnd_ind(1))});
+                                                    otherwise
+                                                        error('Invalid target name listed');
+                                                end
+                                                 screen_picDim_buff{1, k_pic_buff} = [0; 0; tx_size(2); tx_size(1)];
+                                                 screen_picDim_buff{2, k_pic_buff} = [TEXT_LOC(1) - TEXT_SIZE; TEXT_LOC(2) - TEXT_SIZE;...
+                                                     TEXT_LOC(1) + TEXT_SIZE; TEXT_LOC(2) + TEXT_SIZE];
+                                                 screen_pic_buff{k_pic_buff} = temp_tx;
+                                                 draw_pic_flag = 1;
+                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            case 3 % catch trial
+                                                rnd_ind = randperm(3);
+                                                k_oval_buff = k_oval_buff + 1;
+                                                switch trial_target_numbers(i_tr)
+                                                    case 1       
+                                                        temp_alt_targ = [2 3 4];
+                                                        screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
+                                                        screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                        %Data.Target(i_tr) = 3;
+                                                    case 2
+                                                        temp_alt_targ = [1 3 4];
+                                                        screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
+                                                        screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                        %Data.Target(i_tr) = 4;
+                                                    case 3
+                                                        temp_alt_targ = [1 2 4];
+                                                        screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
+                                                        screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                        %Data.Target(i_tr) = 5;
+                                                    case 4 
+                                                        temp_alt_targ = [1 2 3];
+                                                        screen_oval_buff(:, k_oval_buff) = [targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'; targ_coords_base(temp_alt_targ(rnd_ind(1)),:)'] + target_dims;
+                                                        screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                        %Data.Target(i_tr) = 6;
+                                                    otherwise
+                                                        error('Invalid target name listed');
+                                                end
+                                                Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            case 2
+                                                switch trial_target_numbers(i_tr)
+                                                    case 1
+                                                        temp_tx = Screen('MakeTexture', win, im_list{1});
+                                                        tx_size = size(im_list{1});
+                                                    case 2
+                                                        temp_tx = Screen('MakeTexture', win, im_list{2});
+                                                        tx_size = size(im_list{2});
+                                                    case 3
+                                                        temp_tx = Screen('MakeTexture', win, im_list{3});
+                                                        tx_size = size(im_list{3});
+                                                    case 4 
+                                                        temp_tx = Screen('MakeTexture', win, im_list{4});
+                                                        tx_size = size(im_list{4});
+                                                    otherwise
+                                                        error('Invalid target name listed');
+                                                end
+                                                 screen_picDim_buff{1, k_pic_buff} = [0; 0; tx_size(2); tx_size(1)];
+                                                 screen_picDim_buff{2, k_pic_buff} = [TEXT_LOC(1) - TEXT_SIZE; TEXT_LOC(2) - TEXT_SIZE;...
+                                                     TEXT_LOC(1) + TEXT_SIZE; TEXT_LOC(2) + TEXT_SIZE];
+                                                 screen_pic_buff{k_pic_buff} = temp_tx;
+                                                 draw_pic_flag = 1;
+                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            case 1
+                                                k_oval_buff = k_oval_buff + 1;
+                                                screen_oval_buff(:, k_oval_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;
+                                                screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            case 0
+                                                %show nothing
+                                                Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                            otherwise
+                                                error('No valid trial type specified.')
+                                        end 
+                                        sub_entrance = 0;
+                                    else
+                                        if cur_state_time >= WT_TIME + STIM_A_TIME_DUR + STIM_B_TIME_DUR + STIM_ISI_DUR
+                                            % extinguish cues
+                                            draw_text_flag = 0;
+                                            draw_pic_flag = 0;
+                                            switch trial_type(i_tr)
+                                                case 4
+                                                case 3
+                                                    k_oval_buff = k_oval_buff - 1;
+                                                    screen_oval_buff = screen_oval_buff(:, 1:k_oval_buff);
+                                                    screen_color_buff = screen_color_buff(:, 1:k_oval_buff);
+                                                case 2
+                                                case 1
+                                                    k_oval_buff = k_oval_buff - 1;
+                                                    screen_oval_buff = screen_oval_buff(:, 1:k_oval_buff);
+                                                    screen_color_buff = screen_color_buff(:, 1:k_oval_buff);
+                                                case 0
+                                                otherwise
+                                                    error('invalid trial type')
+                                            end
+                                            sub_entrance = 1;
+                                            home_sub_state = 'post_wait';
+                                        else
+                                            % do nothing
+                                        end
+                                    end
+                                case 'post_wait'
+                                    if sub_entrance == 1
+                                        sub_entrance = 0;
+                                    else
+                                        if cur_state_time >= TR_TIME + RET_TIME
+                                            % finally move to ITI state
+                                            state = 'ITI';
+                                            entrance = 1;
+                                        else
+                                            % do nothing just wait
+                                        end
+                                    end
+                                otherwise
+                                    error('No home state substate specified')
                             end
                         end
                     case 'ITI'
@@ -629,18 +707,18 @@ for block_num = 1:4
         Screen('Flip', win);
         Screen('DrawText', win, 'This is a mandatory 30 second break. Tracking has been disabled.', round(screen_dim1/2), round(screen_dim2/2));
         Screen('Flip', win);
-        pause(10);%change back to 10 (and those below)
-        Screen('DrawText', win, '...20 more seconds', round(screen_dim1/2), round(screen_dim2/2));
-        Screen('Flip', win);
-        pause(10);
-        Screen('DrawText', win, '...10 more seconds', round(screen_dim1/2), round(screen_dim2/2));
-        Screen('Flip', win);
-        pause(5);
-        Screen('DrawText', win, '...5 more seconds', round(screen_dim1/2), round(screen_dim2/2));
-        Screen('Flip', win);
-        pause(5);
-        Screen('DrawText', win, 'Beginning new block now...', round(screen_dim1/2), round(screen_dim2/2));
-        Screen('Flip', win);
+%         pause(10);%change back to 10 (and those below)
+%         Screen('DrawText', win, '...20 more seconds', round(screen_dim1/2), round(screen_dim2/2));
+%         Screen('Flip', win);
+%         pause(10);
+%         Screen('DrawText', win, '...10 more seconds', round(screen_dim1/2), round(screen_dim2/2));
+%         Screen('Flip', win);
+%         pause(5);
+%         Screen('DrawText', win, '...5 more seconds', round(screen_dim1/2), round(screen_dim2/2));
+%         Screen('Flip', win);
+%         pause(5);
+%         Screen('DrawText', win, 'Beginning new block now...', round(screen_dim1/2), round(screen_dim2/2));
+%         Screen('Flip', win);
         pause(1);
     else
         % exit

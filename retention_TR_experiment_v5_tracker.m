@@ -21,6 +21,7 @@ res2 = 1080;
 screen_dim1 = screen_dims(1);
 screen_dim2 = screen_dims(2);
 
+load('trial_parameters_dmh.mat'); trial_target_numbers_MASTER = trial_target_numbers; trial_type_MASTER = trial_type; prescribed_PT_MASTER = prescribed_PT;
 load('camera_params');
 load('mm_per_pix');
 load('camera_angle_calibration.mat');
@@ -71,7 +72,7 @@ im_list_A{4} = imread('afasa8.jpg');
 STIM_A_TIME_DUR = .25; %sec
 STIM_B_TIME_DUR = STIM_A_TIME_DUR;
 STIM_ISI_DUR = 0; %this should ultimately get set per trial by exp. params.
-WT_TIME = 2; %this should ultimately get set per trial by exp. params.
+% WT_TIME = 2; %this should ultimately get set per trial by exp. params.
 RET_TIME = 3; %sec
 TR_TIME = 1.1; %sec 
 MOV_TIME = 1.9; % (1.1 for targ disp, 1.9 for movement)
@@ -90,7 +91,7 @@ pahandle = PsychPortAudio('Open');
 
 Ts = 1/44100;
 sound_dur = .1;
-tone_freq1 = 1000;targ_coords_base
+tone_freq1 = 1000;
 tone_freq2 = 1700;
 time = Ts:Ts:.1;
 tone_signal1 = .1*sin(tone_freq1*time);
@@ -113,7 +114,7 @@ bubble_expand_rate = 800;
 SUB_NUM_ = 'dmh';
 %%
 % [trial_target_numbers_MASTER, trial_type_MASTER, prescribed_PT_MASTER] = generate_trial_table_E1retention_v5(SUB_NUM_);
-load('trial_parameters_dmh.mat'); trial_target_numbers_MASTER = trial_target_numbers; trial_type_MASTER = trial_type; prescribed_PT_MASTER = prescribed_PT;
+
 screens=Screen('Screens');
 screenNumber=min(screens);
 [win, rect] = Screen('OpenWindow', screenNumber, []); %[0 0 1600 900]);
@@ -122,7 +123,7 @@ for block_num = 1%:4
     switch block_num
         case 1
             this_trials = 1:12;
-this_trials = 1:2;
+% this_trials = 1:2;
             trial_type = trial_type_MASTER(this_trials);
             trial_target_numbers = trial_target_numbers_MASTER(this_trials);
             prescribed_PT = prescribed_PT_MASTER(this_trials);
@@ -210,6 +211,7 @@ this_trials = 1:2;
             tone_flag = 1;
     %         curr_target = targ_coords_base(trial_target_numbers(i_tr), :);
             curr_target = home_position;
+            WT_TIME = (RET_TIME + TR_TIME) - (prescribed_PT(i_tr) + STIM_A_TIME_DUR + STIM_B_TIME_DUR + STIM_ISI_DUR);
             while ~isequal(state, 'end_state')
 
                 % record position data and draw all text/pics/objects

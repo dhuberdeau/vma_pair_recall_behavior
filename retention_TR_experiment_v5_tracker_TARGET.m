@@ -1,4 +1,4 @@
-function varargout = retention_TR_experiment_v5_tracker(varargin)
+function varargout = retention_TR_experiment_v5_tracker_TARGET(varargin)
 % Screen('Preference', 'SkipSyncTests', 1);
 %% Specify trial list
 % ultimately replace this section with code to load in a separately
@@ -95,7 +95,7 @@ im_list_A{8} = imread('afasa12.jpg');
 
 % CUE_TIME = .250; %sec
 STIM_A_TIME_DUR = .25; %sec
-STIM_B_TIME_DUR = STIM_A_TIME_DUR;
+STIM_B_TIME_DUR = 0;%STIM_A_TIME_DUR;
 STIM_ISI_DUR = 0; %this should ultimately get set per trial by exp. params.
 STIM_A_ONSET_TIME = 1.9;
 % WT_TIME = 2; %this should ultimately get set per trial by exp. params.
@@ -564,28 +564,33 @@ for block_num = 1:7
 %                                                 end
 %                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);
                                             case 2
-                                                switch trial_target_numbers(i_tr)
-                                                    case 1
-                                                        temp_tx = Screen('MakeTexture', win, im_list{1});
-                                                        tx_size = size(im_list{1});
-                                                    case 2
-                                                        temp_tx = Screen('MakeTexture', win, im_list{2});
-                                                        tx_size = size(im_list{2});
-                                                    case 3
-                                                        temp_tx = Screen('MakeTexture', win, im_list{3});
-                                                        tx_size = size(im_list{3});
-                                                    case 4 
-                                                        temp_tx = Screen('MakeTexture', win, im_list{4});
-                                                        tx_size = size(im_list{4});
-                                                    otherwise
-                                                        error('Invalid target name listed');
-                                                end
-                                                 screen_picDim_buff{1, k_pic_buff} = [0; 0; tx_size(2); tx_size(1)];
-                                                 screen_picDim_buff{2, k_pic_buff} = [TEXT_LOC(1) - TEXT_SIZE; TEXT_LOC(2) - TEXT_SIZE;...
-                                                     TEXT_LOC(1) + TEXT_SIZE; TEXT_LOC(2) + TEXT_SIZE];
-                                                 screen_pic_buff{k_pic_buff} = temp_tx;
-                                                 draw_pic_flag = 1;
-                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);
+%                                                 switch trial_target_numbers(i_tr)
+%                                                     case 1
+%                                                         temp_tx = Screen('MakeTexture', win, im_list{1});
+%                                                         tx_size = size(im_list{1});
+%                                                     case 2
+%                                                         temp_tx = Screen('MakeTexture', win, im_list{2});
+%                                                         tx_size = size(im_list{2});
+%                                                     case 3
+%                                                         temp_tx = Screen('MakeTexture', win, im_list{3});
+%                                                         tx_size = size(im_list{3});
+%                                                     case 4 
+%                                                         temp_tx = Screen('MakeTexture', win, im_list{4});
+%                                                         tx_size = size(im_list{4});
+%                                                     otherwise
+%                                                         error('Invalid target name listed');
+%                                                 end
+%                                                  screen_picDim_buff{1, k_pic_buff} = [0; 0; tx_size(2); tx_size(1)];
+%                                                  screen_picDim_buff{2, k_pic_buff} = [TEXT_LOC(1) - TEXT_SIZE; TEXT_LOC(2) - TEXT_SIZE;...
+%                                                      TEXT_LOC(1) + TEXT_SIZE; TEXT_LOC(2) + TEXT_SIZE];
+%                                                  screen_pic_buff{k_pic_buff} = temp_tx;
+%                                                  draw_pic_flag = 1;
+%                                                  Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                                k_oval_buff = k_oval_buff + 1;
+                                                screen_oval_buff(:, k_oval_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;
+                                                screen_color_buff(:, k_oval_buff) = [0; 0; 0];
+                                                Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                                Data.time_targ_disp(i_tr) = GetSecs - exp_time;
                                             case 1
                                                 k_oval_buff = k_oval_buff + 1;
                                                 screen_oval_buff(:, k_oval_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;

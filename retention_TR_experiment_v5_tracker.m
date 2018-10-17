@@ -178,6 +178,7 @@ for block_num = 1:7
     % Data.Key = nan(N_TRS, 1);
     Data.pPT = nan(N_TRS, 1);
     Data.time_targ_disp = nan(N_TRS, 1);
+    Data.time_stimA_disp = nan(N_TRS, 1);
     Data.Type = nan(N_TRS, 1);
     Data.ViewTime = nan(N_TRS, 1);
     Data.Kinematics = cell(N_TRS, 1);
@@ -472,11 +473,13 @@ for block_num = 1:7
                                                 screen_pic_buff{k_pic_buff} = temp_tx;
                                                 draw_pic_flag = 1;
                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                                Data.time_stimA_disp(i_tr) = GetSecs - exp_time;
                                             case 1
                                                 k_oval_buff = k_oval_buff + 1;
                                                 screen_oval_buff(:, k_oval_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;
                                                 screen_color_buff(:, k_oval_buff) = [0; 0; 0];
                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);
+                                                Data.time_stimA_disp(i_tr) = GetSecs - exp_time;
                                             case 0
                                                 %show nothing
                                                 Data.Target(i_tr) = trial_target_numbers(i_tr);

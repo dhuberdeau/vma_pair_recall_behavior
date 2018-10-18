@@ -145,7 +145,7 @@ screens=Screen('Screens');
 screenNumber=min(screens);
 [win, rect] = Screen('OpenWindow', screenNumber, []); %[0 0 1600 900]);
 
-for block_num = 8
+for block_num = 1:7
     switch block_num
         case 1
             this_trials = 1:12;
@@ -186,6 +186,10 @@ for block_num = 8
     Data.Kinematics = cell(N_TRS, 1);
     Data.EventTimes = cell(N_TRS, 1);
     Data.Target = nan(N_TRS, 1);
+    Data.params.trial_type = trial_type;
+    Data.params.trial_target_numbers = trial_target_numbers;
+    Data.params.trial_stimA_numbers = trial_stimA_numbers;
+    Data.params.prescribed_PT = prescribed_PT;
 
     %% initialize kinematics
 %     kinematics = nan(pre_alloc_samps, 3);
@@ -789,7 +793,11 @@ for block_num = 8
     end
 end
 Screen('Flip', win);
-Screen('DrawText', win, 'This now completes the experiment. Thank you for participating.', round(screen_dim1/2), round(screen_dim2/2));
+if block_num == 7
+    Screen('DrawText', win, 'Part 1 has completed. Please see the experimenter for additional instruction.', round(screen_dim1/2), round(screen_dim2/2));
+else
+    Screen('DrawText', win, 'This now completes the experiment. Thank you for participating.', round(screen_dim1/2), round(screen_dim2/2));
+end
 Screen('Flip', win);
 pause;
 sca;

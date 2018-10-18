@@ -145,7 +145,7 @@ screens=Screen('Screens');
 screenNumber=min(screens);
 [win, rect] = Screen('OpenWindow', screenNumber, []); %[0 0 1600 900]);
 
-for block_num = 2:3
+for block_num = 8
     switch block_num
         case 1
             this_trials = 1:12;
@@ -161,6 +161,8 @@ for block_num = 2:3
             this_trials = 12+48*4+(1:48);
         case 7
             this_trials = 12+48*5+(1:48);
+        case 8
+            this_trials = 12+48*6+(1:48);
         otherwise
             error('Not a valid block')
     end

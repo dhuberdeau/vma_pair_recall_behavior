@@ -149,14 +149,14 @@ screens=Screen('Screens');
 screenNumber=min(screens);
 [win, rect] = Screen('OpenWindow', screenNumber, []); %[0 0 1600 900]);
 
-for block_num = 1:7
+for block_num = 3%:7
     switch block_num
         case 1
             this_trials = 1:12;
         case 2
             this_trials = 12+(1:48);
         case 3
-            this_trials = 12+48+(1:48);
+            this_trials = 12+48+(1:5);
         case 4
             this_trials = 12+48*2+(1:48);
         case 5
@@ -612,7 +612,7 @@ for block_num = 1:7
                                                 Data.time_targ_disp(i_tr) = GetSecs - exp_time;
                                             case 1
                                                 k_arc_buff = k_arc_buff + 1;
-                                                screen_arc_buff(k_arc_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;
+                                                screen_arc_buff(:, k_arc_buff) = [targ_coords_base(trial_target_numbers(i_tr),:)'; targ_coords_base(trial_target_numbers(i_tr),:)'] + target_dims;
                                                 screen_arc_angle_buff([1 2], k_arc_buff) =...
                                                     [targ_arc_angles_start(trial_target_numbers(i_tr)); targ_arc_length];
                                                 arc_color_buff(:, k_arc_buff) = [0; 0; 0];

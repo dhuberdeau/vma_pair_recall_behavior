@@ -145,7 +145,7 @@ screens=Screen('Screens');
 screenNumber=min(screens);
 [win, rect] = Screen('OpenWindow', screenNumber, []); %[0 0 1600 900]);
 
-for block_num = 1:7
+for block_num = 1:7%8
     switch block_num
         case 1
             this_trials = 1:12;
